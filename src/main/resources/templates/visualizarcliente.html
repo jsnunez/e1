@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Clientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script>
+        async function cargarClientes() {
+            const response = await fetch('/api/persona'); // Asegúrate de que esta ruta sea correcta
+            const personas = await response.json();
+            const tablaClientes = document.getElementById('tabla-clientes');
+
+            // Filtrar solo aquellos cuyo tipoPersona.id es 1
+            const clientes = personas.filter(persona => persona.tipoPersona.id === 1);
+console.log(clientes);
+            clientes.forEach(cliente => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cliente.nroDoc}</td>
+                    <td>${cliente.nombre}</td>
+                    <td>${cliente.apellido}</td>
+                    <td>${cliente.fechaRegistro}</td>
+                    <td>${cliente.sucursal.nombreSuc ? cliente.sucursal.nombreSuc : 'N/A'}</td>
+                `;
+                tablaClientes.appendChild(row);
+            });
+        }
+
+        window.onload = cargarClientes;
+    </script>
+</head>
+<body>
+    <h1>Lista de Clientes</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Número de Documento</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Fecha de Registro</th>
+                <th>Sucursal</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-clientes">
+            <!-- Aquí se llenarán los datos de los clientes -->
+        </tbody>
+    </table>
+</body>
+</html>

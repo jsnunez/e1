@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Detalle de Servicio</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script>
+        // Función para cargar servicios en el select
+        async function cargarServicios() {
+            const response = await fetch('/api/servicio');
+            if (!response.ok) {
+                alert('Error al cargar los servicios.');
+                return;
+            }
+            const servicios = await response.json();
+            const servicioSelect = document.getElementById('servicioSelect');
+
+            servicios.forEach(servicio => {
+                const option = document.createElement('option');
+                option.value = servicio.id;
+                option.textContent = servicio.nombre;
+                servicioSelect.appendChild(option);
+            });
+        }
+
+        
+        async function verificarDetalles() {
+            const servicioId = document.getElementById('servicioSelect').value;
+            const response = await fetch(`/api/servicio/${servicioId}`);
+
+            if (!response.ok) {
+                alert('Servicio no encontrado.');
+                return;
+            }
+            const detallesResponse = await fetch(`/api/detalleordentrabajo`);
+            const detalles = await detallesResponse.json();
+
+            const detallesDeServicio = detalles.filter(detalle => detalle.servicio.id == servicioId);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; 
+
+            if (detallesDeServicio.length > 0) {
+                // Crear la tabla
+                let tableHTML = `
+                    <h3>Detalles de Orden de Trabajo para el Servicio ID: ${servicioId}</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Descripción</th>
+                                <th>Fecha Asignación</th>
+                                <th>Hora Asignación</th>
+                                <th>ID Empleado</th>
+                                <th>Nro Orden T</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                detallesDeServicio.forEach(detalle => {
+                    tableHTML += `
+                        <tr>
+                            <td>${detalle.id}</td>
+                            <td>${detalle.servicio.nombre}</td>
+                            <td>${detalle.ordenTrabajo.fechaAsignacion}</td>
+                            <td>${detalle.ordenTrabajo.horaAsignacion}</td>
+                            <td>${detalle.ordenTrabajo.idEmpleado}</td>
+                            <td>${detalle.ordenTrabajo.nroOrdenT}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                resultDiv.innerHTML = tableHTML;
+            } else {
+                resultDiv.innerHTML = `<h3>No hay detalles de orden de trabajo asociados a este servicio.</h3>`;
+            }
+        }
+
+        // Cargar servicios al inicio
+        window.onload = cargarServicios;
+    </script>
+</head>
+<body>
+    <h1>Verificar Detalle de Servicio</h1>
+    <label for="servicioSelect">Selecciona un Servicio:</label>
+    <select id="servicioSelect" required>
+        <option value="">-- Selecciona un Servicio --</option>
+    </select>
+    <button onclick="verificarDetalles()">Verificar</button>
+
+    <div id="result"></div>
+</body>
+</html>

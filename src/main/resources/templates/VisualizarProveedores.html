@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Lista de Proveedores</h1>
+<table id="proveedoresTable">
+    <thead>
+        <tr>
+            <th>Nro Doc</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Teléfonos</th>
+            <th>Sucursal</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Los datos se insertarán aquí -->
+    </tbody>
+</table>
+
+<script>
+    async function fetchProveedores() {
+        try {
+            const response = await fetch('/api/persona');
+            if (!response.ok) {
+                throw new Error('Error al obtener los proveedores');
+            }
+            const personas = await response.json();
+
+            // Filtrar solo aquellos cuyo tipoPersona.id es 3
+            const proveedores = personas.filter(persona => persona.tipoPersona.id === 3);
+            const tableBody = document.querySelector('#proveedoresTable tbody');
+
+            // Limpiar tabla antes de insertar
+            tableBody.innerHTML = '';
+
+            for (const proveedor of proveedores) {
+                const telefonos = await fetchTelefonos(proveedor.nroDoc);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${proveedor.nroDoc}</td>
+                    <td>${proveedor.nombre}</td>
+                    <td>${proveedor.apellido}</td>
+                    <td>${telefonos.join(', ') || 'Sin teléfono'}</td>
+                    <td>${proveedor.sucursal.empresa.nombre}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function fetchTelefonos(nroDoc) {
+        try {
+            const response = await fetch(`/api/telpersona/proveedor/${nroDoc}`);
+            if (!response.ok) {
+                throw new Error('Error al obtener los teléfonos');
+            }
+            const telefonos = await response.json();
+            return telefonos.map(tel => tel.nro);
+        } catch (error) {
+            console.error('Error:', error);
+            return [];
+        }
+    }
+
+    // Llamar a la función al cargar la página
+    window.onload = fetchProveedores;
+</script>
+
+</body>
+</html>

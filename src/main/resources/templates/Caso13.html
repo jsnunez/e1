@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Órdenes de Trabajo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .order-list, .form {
+            margin-bottom: 20px;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        input, select {
+            padding: 8px;
+            width: 100%;
+        }
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Control de Órdenes de Trabajo</h1>
+
+    <h2>Lista de Órdenes de Trabajo</h2>
+    <div class="order-list">
+        <ul id="ordenTrabajoList"></ul>
+    </div>
+
+    <h2>Crear / Editar Orden de Trabajo</h2>
+    <div class="form">
+        <div class="form-group">
+            <label class="label" for="empleadoSelect">Selecciona Profesional:</label>
+            <select id="empleadoSelect"></select>
+        </div>
+        <div class="form-group">
+            <label class="label" for="estado">Estado:</label>
+            <select id="estado">
+                <option value="1">Nuevo</option>
+                <option value="2">En Progreso</option>
+                <option value="3">Completado</option>
+                <option value="4">Cancelado</option>
+            </select>
+        </div>
+        <button id="saveButton">Guardar Orden de Trabajo</button>
+    </div>
+
+    <script>
+        const ordenTrabajoList = document.getElementById('ordenTrabajoList');
+        const empleadoSelect = document.getElementById('empleadoSelect');
+        const estadoSelect = document.getElementById('estado');
+        let editingOrderId = null;
+
+        async function fetchOrdenesTrabajo() {
+            const response = await fetch('/api/orden-trabajo');
+            const ordenes = await response.json();
+            console.log(ordenes);
+            ordenTrabajoList.innerHTML = '';
+            ordenes.forEach(orden => {
+                const li = document.createElement('li');
+                li.textContent = `Orden No: ${orden.nroOrdenT}, fechaAsignacion: ${orden.fechaAsignacion}`;
+                
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Editar';
+                editButton.onclick = () => editOrder(orden);
+
+                li.appendChild(editButton);
+                ordenTrabajoList.appendChild(li);
+            });
+        }
+
+        async function fetchProfesionales() {
+            const response = await fetch('/api/persona');
+            const profesionales = await response.json();
+            const filteredProfesionales = profesionales.filter(persona => persona.tipoPersona.id === 4); // Asumiendo que 4 es "profesional"
+            
+            filteredProfesionales.forEach(profesional => {
+                const option = document.createElement('option');
+                option.value = profesional.nroDoc;
+                option.textContent = `${profesional.nombre} ${profesional.apellido}`;
+                empleadoSelect.appendChild(option);
+            });
+        }
+
+        async function saveOrder() {
+            const empleadoNroDoc = empleadoSelect.value;
+            const estado = estadoSelect.value;
+
+            const orderData = {
+                empleado: { nroDoc: empleadoNroDoc },
+                estado: { id: estado }
+            };
+
+            const method = editingOrderId ? 'PUT' : 'POST';
+            const url = editingOrderId ? `/api/orden-trabajo/${editingOrderId}` : '/api/orden-trabajo';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (response.ok) {
+                fetchOrdenesTrabajo();
+                clearForm();
+            }
+        }
+
+        function clearForm() {
+            empleadoSelect.value = '';
+            estadoSelect.value = '1'; // Default to "Nuevo"
+            editingOrderId = null;
+        }
+
+        function editOrder(orden) {
+            empleadoSelect.value = orden.empleado.nroDoc;
+            estadoSelect.value = orden.estado.id;
+            editingOrderId = orden.nroOrdenT; // Store the ID of the order being edited
+        }
+
+        document.getElementById('saveButton').addEventListener('click', saveOrder);
+
+        window.onload = async () => {
+            await fetchOrdenesTrabajo();
+            await fetchProfesionales();
+        };
+    </script>
+</body>
+</html>

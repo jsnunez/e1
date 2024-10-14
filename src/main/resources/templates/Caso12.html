@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Personas</title>
+    <script>
+        async function fetchPersonas() {
+            const response = await fetch('/api/persona');
+            const personas = await response.json();
+            const filteredPersonas = personas.filter(persona => persona.tipoPersona.id == 4);
+            const select = document.getElementById('personaSelect');
+
+            filteredPersonas.forEach(persona => {
+                const option = document.createElement('option');
+                option.value = persona.nroDoc;
+                option.textContent = `${persona.nombre} ${persona.apellido}`;
+                select.appendChild(option);
+            });
+        }
+
+        async function fetchOrdenesServicio() {
+            const select = document.getElementById('personaSelect');
+            const selectedNroDoc = select.value;
+
+            if (selectedNroDoc) {
+                const response = await fetch(`/api/ordenservicio`);
+                const ordenes = await response.json();
+                const filteredordenes = ordenes.filter(orden => orden.empleado.nroDoc == selectedNroDoc);
+
+                const ordenList = document.getElementById('ordenList');
+                ordenList.innerHTML = '';
+
+                filteredordenes.forEach(orden => {
+                    const li = document.createElement('li');
+                    li.textContent = `Orden Servicio No: ${orden.noOrden}, Estado: ${orden.estado.nombre}, Cliente: ${orden.cliente.nombre}`;
+                    ordenList.appendChild(li);
+                });
+            }
+        }
+
+        async function fetchOrdenesTrabajo() {
+            const select = document.getElementById('personaSelect');
+            const selectedNroDoc = select.value;
+            console.log(selectedNroDoc);
+
+            if (selectedNroDoc) {
+                const response = await fetch(`/api/orden-trabajo`);
+                const ordenes = await response.json();
+                console.log(ordenes);
+                const filteredordenes = ordenes.filter(orden => orden.idEmpleado == selectedNroDoc);
+                const ordenTrabajoList = document.getElementById('ordenTrabajoList');
+                ordenTrabajoList.innerHTML = '';
+
+                filteredordenes.forEach(orden => {
+                    const li = document.createElement('li');
+                    li.textContent = `Orden Trabajo No: ${orden.nroOrdenT}, fecha: ${orden.fechaAsignacion}, hora: ${orden.horaAsignacion}`;
+                    ordenTrabajoList.appendChild(li);
+                });
+            }
+        }
+
+        async function fetchAllOrdenes() {
+            await fetchOrdenesServicio();
+            await fetchOrdenesTrabajo();
+        }
+
+        window.onload = () => {
+            fetchPersonas();
+            document.getElementById('personaSelect').addEventListener('change', fetchAllOrdenes);
+        };
+    </script>
+</head>
+<body>
+    <h1>Lista de Personas con Tipo Persona = 4</h1>
+    <label for="personaSelect">Selecciona una persona:</label>
+    <select id="personaSelect">
+        <option value="">--Seleccione--</option>
+    </select>
+
+    <h2>Órdenes de Servicio Asignadas:</h2>
+    <ul id="ordenList"></ul>
+
+    <h2>Órdenes de Trabajo Asignadas:</h2>
+    <ul id="ordenTrabajoList"></ul>
+</body>
+</html>

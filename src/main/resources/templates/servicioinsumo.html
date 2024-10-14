@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario Servicio Insumo</title>
+    <script>
+        // Función para cargar servicios e insumos
+        async function cargarDatos() {
+            const [serviciosResponse, insumosResponse] = await Promise.all([
+                fetch('/api/servicio'),
+                fetch('/api/insumo')
+            ]);
+
+            const servicios = await serviciosResponse.json();
+            const insumos = await insumosResponse.json();
+
+            // Cargar servicios en el select
+            const servicioSelect = document.getElementById('servicio');
+            servicios.forEach(servicio => {
+                const option = document.createElement('option');
+                option.value = servicio.id; // Asegúrate de que el ID del servicio esté correcto
+                option.textContent = servicio.nombre; // Cambia "nombre" al campo correcto
+                servicioSelect.appendChild(option);
+            });
+
+            // Cargar insumos en el select
+            const insumoSelect = document.getElementById('insumo');
+            insumos.forEach(insumo => {
+                const option = document.createElement('option');
+                option.value = insumo.id; // Asegúrate de que el ID del insumo esté correcto
+                option.textContent = insumo.nombreInsumo; // Cambia "nombre" al campo correcto
+                insumoSelect.appendChild(option);
+            });
+        }
+
+        // Función para enviar el formulario
+        async function enviarFormulario(event) {
+            event.preventDefault();
+
+            const idServicio = document.getElementById('servicio').value;
+            const idInsumo = document.getElementById('insumo').value;
+            const cantidadUsado = document.getElementById('cantidadUsado').value;
+
+            const data = {
+                id: {
+                    id_servicio: idServicio,
+                    id_insumo: idInsumo
+                },
+                cantidadUsado: cantidadUsado
+            };
+
+            const response = await fetch('/api/servicioinsumo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Servicio Insumo creado con éxito!');
+            } else {
+                alert('Error al crear Servicio Insumo.');
+            }
+        }
+
+        // Cargar datos al cargar la página
+        window.onload = cargarDatos;
+    </script>
+</head>
+<body>
+    <h1>Crear Servicio Insumo</h1>
+    <form onsubmit="enviarFormulario(event)">
+        <label for="servicio">Servicio:</label>
+        <select id="servicio" required>
+            <option value="">Seleccione un servicio</option>
+        </select>
+        <br><br>
+
+        <label for="insumo">Insumo:</label>
+        <select id="insumo" required>
+            <option value="">Seleccione un insumo</option>
+        </select>
+        <br><br>
+
+        <label for="cantidadUsado">Cantidad Usado:</label>
+        <input type="number" id="cantidadUsado" required min="1">
+        <br><br>
+
+        <button type="submit">Crear</button>
+    </form>
+</body>
+</html>
