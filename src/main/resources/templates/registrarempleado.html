@@ -4,9 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Persona</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 16px;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #dfe3e8;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px #3a7bc2;
+            width: 100%;
+            font-size: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:active {
+            box-shadow: 0 2px #3a7bc2;
+            transform: translateY(2px);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+    </style>
     <script>
-        // Función para cargar sucursales
-        async function cargarSucursales() {
+    async function cargarSucursales() {
             const response = await fetch('/api/sucursal');
             const sucursales = await response.json();
             const sucursalSelect = document.getElementById('sucursal');
@@ -14,12 +89,12 @@
             sucursales.forEach(sucursal => {
                 const option = document.createElement('option');
                 option.value = sucursal.id; 
-                option.textContent = sucursal.nombre; 
+                option.textContent = sucursal.nombreSuc; 
                 sucursalSelect.appendChild(option);
             });
         }
 
-        // Función para enviar el formulario
+
         async function enviarFormulario(event) {
             event.preventDefault();
 
@@ -34,8 +109,8 @@
                 nombre: nombre,
                 apellido: apellido,
                 fechaRegistro: fechaRegistro,
-                sucursal: { id: idSucursal }, 
-                tipoPersona: { id: 2 } 
+                sucursal: { id: idSucursal },
+                tipoPersona: { id: 2 }
             };
 
             const response = await fetch('/api/persona', {
@@ -48,42 +123,40 @@
 
             if (response.ok) {
                 alert('Persona registrada con éxito!');
-                document.getElementById('registro-form').reset(); // Resetear el formulario
+                document.getElementById('registro-form').reset();
             } else {
                 alert('Error al registrar la persona.');
             }
         }
 
-        // Cargar sucursales al cargar la página
         window.onload = cargarSucursales;
     </script>
 </head>
 <body>
-    <h1>Registrar Persona</h1>
-    <form id="registro-form" onsubmit="enviarFormulario(event)">
-        <label for="nroDoc">Número de Documento:</label>
-        <input type="number" id="nroDoc" required>
-        <br><br>
+    <div class="container">
+        <h1>Registrar empleado</h1>
+        <form id="registro-form" onsubmit="enviarFormulario(event)">
+            <label for="nroDoc">Número de Documento:</label>
+            <input type="number" id="nroDoc" required>
 
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" required>
-        <br><br>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required>
 
-        <label for="apellido">Apellido:</label>
-        <input type="text" id="apellido" required>
-        <br><br>
+            <label for="apellido">Apellido:</label>
+            <input type="text" id="apellido" required>
 
-        <label for="fechaRegistro">Fecha de Registro:</label>
-        <input type="date" id="fechaRegistro" required>
-        <br><br>
+            <label for="fechaRegistro">Fecha de Registro:</label>
+            <input type="date" id="fechaRegistro" required>
 
-        <label for="sucursal">Sucursal:</label>
-        <select id="sucursal" required>
-            <option value="">Seleccione una sucursal</option>
-        </select>
-        <br><br>
+         
+            <label for="sucursal">Sucursal:</label>
+            <select id="sucursal" required>
+                <option value="">Seleccione una sucursal</option>
+            </select>
+            <br><br>
 
-        <button type="submit">Registrar</button>
-    </form>
+            <button type="submit">Registrar</button>
+        </form>
+    </div>
 </body>
 </html>
